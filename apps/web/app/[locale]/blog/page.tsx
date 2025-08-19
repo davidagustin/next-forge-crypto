@@ -1,19 +1,53 @@
-import { blog } from '@repo/cms';
-import { Feed } from '@repo/cms/components/feed';
-import { Image } from '@repo/cms/components/image';
 import { cn } from '@repo/design-system/lib/utils';
 import { getDictionary } from '@repo/internationalization';
 import type { Blog, WithContext } from '@repo/seo/json-ld';
 import { JsonLd } from '@repo/seo/json-ld';
 import { createMetadata } from '@repo/seo/metadata';
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 type BlogProps = {
   params: Promise<{
     locale: string;
   }>;
 };
+
+type BlogData = {
+  blog: {
+    posts: {
+      items: Array<{
+        _slug: string;
+        _title: string;
+        date: string;
+        description: string;
+        image: {
+          url: string;
+          alt?: string;
+          width: number;
+          height: number;
+        };
+      }>;
+    };
+  };
+};
+
+type CMSModule = {
+  blog: {
+    postsQuery: unknown;
+  };
+};
+
+type FeedComponent = (props: {
+  queries: unknown[];
+  children: (data: [BlogData]) => Promise<ReactNode>;
+}) => ReactNode;
+
+type ImageComponent = (props: {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+}) => ReactNode;
 
 export const generateMetadata = async ({
   params,
@@ -33,6 +67,8 @@ const BlogIndex = async ({ params }: BlogProps) => {
     '@context': 'https://schema.org',
   };
 
+  // CMS removed - using placeholder content
+
   return (
     <>
       <JsonLd code={jsonLd} />
@@ -43,51 +79,13 @@ const BlogIndex = async ({ params }: BlogProps) => {
               {dictionary.web.blog.meta.title}
             </h4>
           </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <Feed queries={[blog.postsQuery]}>
-              {async ([data]) => {
-                'use server';
-
-                if (!data.blog.posts.items.length) {
-                  return null;
-                }
-
-                return data.blog.posts.items.map((post, index) => (
-                  <Link
-                    href={`/blog/${post._slug}`}
-                    className={cn(
-                      'flex cursor-pointer flex-col gap-4 hover:opacity-75',
-                      !index && 'md:col-span-2'
-                    )}
-                    key={post._slug}
-                  >
-                    <Image
-                      src={post.image.url}
-                      alt={post.image.alt ?? ''}
-                      width={post.image.width}
-                      height={post.image.height}
-                    />
-                    <div className="flex flex-row items-center gap-4">
-                      <p className="text-muted-foreground text-sm">
-                        {new Date(post.date).toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <h3 className="max-w-3xl text-4xl tracking-tight">
-                        {post._title}
-                      </h3>
-                      <p className="max-w-3xl text-base text-muted-foreground">
-                        {post.description}
-                      </p>
-                    </div>
-                  </Link>
-                ));
-              }}
-            </Feed>
+          <div className="col-span-full py-20 text-center">
+            <h3 className="mb-4 font-semibold text-2xl">
+              Blog Coming Soon
+            </h3>
+            <p className="text-muted-foreground">
+              Our blog is currently being set up. Please check back later!
+            </p>
           </div>
         </div>
       </div>

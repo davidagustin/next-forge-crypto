@@ -46,6 +46,36 @@ export const Header = ({ dictionary }: HeaderProps) => {
       href: '/blog',
       description: '',
     },
+    {
+      title: 'Crypto',
+      description: 'Cryptocurrency tools and analysis',
+      items: [
+        {
+          title: 'Analysis Dashboard',
+          href: '/crypto',
+        },
+        {
+          title: 'Market Overview',
+          href: '/crypto/market',
+        },
+        {
+          title: 'Portfolio Tracker',
+          href: '/crypto/portfolio',
+        },
+        {
+          title: 'DeFi Dashboard',
+          href: '/crypto/defi',
+        },
+        {
+          title: 'Paper Trading',
+          href: '/crypto/simulator',
+        },
+        {
+          title: 'Price Alerts',
+          href: '/crypto/alerts',
+        },
+      ],
+    },
   ];
 
   if (env.NEXT_PUBLIC_DOCS_URL) {

@@ -2,7 +2,7 @@
 
 import { Button } from '@repo/design-system/components/ui/button';
 import { fonts } from '@repo/design-system/lib/fonts';
-import { captureException } from '@sentry/nextjs';
+// import { captureException } from '@sentry/nextjs';
 import type NextError from 'next/error';
 import { useEffect } from 'react';
 
@@ -13,7 +13,8 @@ type GlobalErrorProperties = {
 
 const GlobalError = ({ error, reset }: GlobalErrorProperties) => {
   useEffect(() => {
-    captureException(error);
+    // captureException(error);
+    console.error('Global error:', error);
   }, [error]);
 
   return (

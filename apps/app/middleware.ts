@@ -11,9 +11,12 @@ const securityHeaders = env.FLAGS_SECRET
   ? noseconeMiddleware(noseconeOptionsWithToolbar)
   : noseconeMiddleware(noseconeOptions);
 
-export default authMiddleware(() =>
-  securityHeaders()
-) as unknown as NextMiddleware;
+// Only use auth middleware if Clerk environment variables are available
+const middleware = env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  ? authMiddleware(() => securityHeaders())
+  : securityHeaders;
+
+export default middleware as unknown as NextMiddleware;
 
 export const config = {
   matcher: [

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptocurrency Analysis Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body class="bg-black text-white">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Mock data for cryptocurrencies
+        const mockCryptos = {
+            'BTCUSDT': { name: 'Bitcoin', price: 67543.21, change: 2.34, volume: 1234567890 },
+            'ETHUSDT': { name: 'Ethereum', price: 3456.78, change: -1.23, volume: 987654321 },
+            'SOLUSDT': { name: 'Solana', price: 145.67, change: 5.67, volume: 456789012 },
+            'BNBUSDT': { name: 'BNB', price: 567.89, change: 0.45, volume: 234567890 },
+            'XRPUSDT': { name: 'XRP', price: 0.5432, change: 3.21, volume: 345678901 },
+            'ADAUSDT': { name: 'Cardano', price: 0.4567, change: -2.34, volume: 123456789 },
+            'DOGEUSDT': { name: 'Dogecoin', price: 0.0987, change: 8.76, volume: 876543210 },
+            'AVAXUSDT': { name: 'Avalanche', price: 34.56, change: 1.23, volume: 234567890 },
+        };
+
+        function TradingViewChart({ symbol }) {
+            const containerRef = useRef(null);
+
+            useEffect(() => {
+                if (!containerRef.current || !window.TradingView) return;
+
+                const widget = new window.TradingView.widget({
+                    width: '100%',
+                    height: 500,
+                    symbol: `BINANCE:${symbol}`,
+                    interval: '60',
+                    timezone: 'Etc/UTC',
+                    theme: 'dark',
+                    style: '1',
+                    locale: 'en',
+                    enable_publishing: false,
+                    allow_symbol_change: false,
+                    container_id: 'tradingview-widget',
+                    studies: [
+                        'MASimple@tv-basicstudies',
+                        'RSI@tv-basicstudies',
+                        'Volume@tv-basicstudies'
+                    ],
+                });
+
+                return () => {
+                    if (containerRef.current) {
+                        containerRef.current.innerHTML = '';
+                    }
+                };
+            }, [symbol]);
+
+            return <div id="tradingview-widget" ref={containerRef} className="w-full h-[500px]" />;
+        }
+
+        function AgentPanel({ symbol, data }) {
+            const [question, setQuestion] = useState('');
+            const [analysis, setAnalysis] = useState('');
+
+            const generateAnalysis = () => {
+                const crypto = mockCryptos[symbol];
+                const trend = crypto.change > 0 ? 'bullish' : 'bearish';
+                const signal = Math.abs(crypto.change) > 3 ? 'strong' : 'moderate';
+                
+                const response = `
+📊 Analysis for ${crypto.name} (${symbol})
+
+Current Price: $${crypto.price.toLocaleString()}
+24h Change: ${crypto.change > 0 ? '+' : ''}${crypto.change.toFixed(2)}%
+Volume: $${(crypto.volume / 1000000).toFixed(2)}M
+
+📈 Market Sentiment: ${trend.toUpperCase()}
+💡 Signal Strength: ${signal.toUpperCase()}
+
+${crypto.change > 0 
+    ? '✅ The market is showing positive momentum. Consider monitoring for entry points near support levels.'
+    : '⚠️ The market is showing negative pressure. Watch for potential bounce at key support levels.'}
+
+Technical Indicators:
+• SMA 20: $${(crypto.price * 0.98).toFixed(2)}
+• SMA 50: $${(crypto.price * 0.95).toFixed(2)}
+• RSI: ${(50 + crypto.change * 2).toFixed(1)}
+• Support: $${(crypto.price * 0.97).toFixed(2)}
+• Resistance: $${(crypto.price * 1.03).toFixed(2)}
+
+${question ? `\nRegarding your question: "${question}"\n→ ` : ''}
+${question.toLowerCase().includes('buy') ? 'Consider dollar-cost averaging and never invest more than you can afford to lose.' : ''}
+${question.toLowerCase().includes('sell') ? 'Take profits gradually and consider keeping a core position for long-term growth.' : ''}
+${question.toLowerCase().includes('trend') ? `The ${Math.abs(crypto.change) > 2 ? 'strong' : 'moderate'} ${trend} trend suggests ${crypto.change > 0 ? 'continued upward momentum' : 'potential reversal opportunity'}.` : ''}
+                `.trim();
+                
+                setAnalysis(response);
+            };
+
+            return (
+                <div className="bg-gray-900 rounded-lg p-6 h-full">
+                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span className="text-blue-500">🤖</span> AI Analysis Agent
+                    </h3>
+                    
+                    <div className="space-y-4">
+                        <div className="bg-gray-800 rounded-lg p-4 h-96 overflow-y-auto">
+                            {analysis ? (
+                                <pre className="whitespace-pre-wrap text-sm font-mono text-gray-300">
+                                    {analysis}
+                                </pre>
+                            ) : (
+                                <p className="text-gray-500">
+                                    Ask me anything about {symbol} or click "Analyze" for market insights
+                                </p>
+                            )}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={question}
+                                onChange={(e) => setQuestion(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && generateAnalysis()}
+                                placeholder="Ask about trends, indicators, or trading strategies..."
+                                className="flex-1 px-4 py-2 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button
+                                onClick={generateAnalysis}
+                                className="px-6 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Analyze
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [selectedSymbol, setSelectedSymbol] = useState('BTCUSDT');
+            const selectedCrypto = mockCryptos[selectedSymbol];
+
+            return (
+                <div className="min-h-screen p-4">
+                    <div className="max-w-7xl mx-auto">
+                        <header className="mb-6">
+                            <h1 className="text-4xl font-bold mb-2">🚀 Cryptocurrency Analysis Dashboard</h1>
+                            <p className="text-gray-400">Professional trading charts with TradingView and AI-powered insights</p>
+                        </header>
+
+                        <div className="grid grid-cols-12 gap-4">
+                            {/* Crypto List */}
+                            <div className="col-span-3">
+                                <div className="bg-gray-900 rounded-lg p-4">
+                                    <h2 className="text-lg font-semibold mb-4">Cryptocurrencies</h2>
+                                    <div className="space-y-2">
+                                        {Object.entries(mockCryptos).map(([symbol, data]) => (
+                                            <button
+                                                key={symbol}
+                                                onClick={() => setSelectedSymbol(symbol)}
+                                                className={`w-full p-3 rounded-lg text-left transition-colors ${
+                                                    selectedSymbol === symbol 
+                                                        ? 'bg-blue-600' 
+                                                        : 'bg-gray-800 hover:bg-gray-700'
+                                                }`}
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <div className="font-semibold">{data.name}</div>
+                                                        <div className="text-sm text-gray-400">
+                                                            ${data.price.toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`text-sm font-semibold ${
+                                                        data.change > 0 ? 'text-green-500' : 'text-red-500'
+                                                    }`}>
+                                                        {data.change > 0 ? '+' : ''}{data.change.toFixed(2)}%
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Main Content */}
+                            <div className="col-span-6">
+                                <div className="bg-gray-900 rounded-lg p-6 mb-4">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div>
+                                            <h2 className="text-3xl font-bold">{selectedCrypto.name}</h2>
+                                            <div className="flex items-center gap-4 mt-2">
+                                                <span className="text-4xl font-bold">
+                                                    ${selectedCrypto.price.toLocaleString()}
+                                                </span>
+                                                <span className={`text-xl font-semibold px-3 py-1 rounded ${
+                                                    selectedCrypto.change > 0 
+                                                        ? 'bg-green-500/20 text-green-500' 
+                                                        : 'bg-red-500/20 text-red-500'
+                                                }`}>
+                                                    {selectedCrypto.change > 0 ? '↑' : '↓'} 
+                                                    {Math.abs(selectedCrypto.change).toFixed(2)}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-sm text-gray-400">24h Volume</div>
+                                            <div className="text-xl font-semibold">
+                                                ${(selectedCrypto.volume / 1000000).toFixed(2)}M
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <TradingViewChart symbol={selectedSymbol} />
+                                </div>
+
+                                {/* Indicators */}
+                                <div className="grid grid-cols-4 gap-4">
+                                    <div className="bg-gray-900 rounded-lg p-4">
+                                        <div className="text-sm text-gray-400 mb-1">SMA 20</div>
+                                        <div className="text-xl font-bold text-yellow-500">
+                                            ${(selectedCrypto.price * 0.98).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-900 rounded-lg p-4">
+                                        <div className="text-sm text-gray-400 mb-1">SMA 50</div>
+                                        <div className="text-xl font-bold text-blue-500">
+                                            ${(selectedCrypto.price * 0.95).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-900 rounded-lg p-4">
+                                        <div className="text-sm text-gray-400 mb-1">Support</div>
+                                        <div className="text-xl font-bold text-green-500">
+                                            ${(selectedCrypto.price * 0.97).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-900 rounded-lg p-4">
+                                        <div className="text-sm text-gray-400 mb-1">Resistance</div>
+                                        <div className="text-xl font-bold text-red-500">
+                                            ${(selectedCrypto.price * 1.03).toFixed(2)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Agent Panel */}
+                            <div className="col-span-3">
+                                <AgentPanel symbol={selectedSymbol} data={selectedCrypto} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

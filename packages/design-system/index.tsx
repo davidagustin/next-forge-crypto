@@ -1,5 +1,4 @@
 import { AnalyticsProvider } from '@repo/analytics';
-import { AuthProvider } from '@repo/auth/provider';
 import type { ThemeProviderProps } from 'next-themes';
 import { Toaster } from './components/ui/sonner';
 import { TooltipProvider } from './components/ui/tooltip';
@@ -17,13 +16,36 @@ export const DesignSystemProvider = ({
   termsUrl,
   helpUrl,
   ...properties
-}: DesignSystemProviderProperties) => (
-  <ThemeProvider {...properties}>
-    <AuthProvider privacyUrl={privacyUrl} termsUrl={termsUrl} helpUrl={helpUrl}>
-      <AnalyticsProvider>
-        <TooltipProvider>{children}</TooltipProvider>
-        <Toaster />
-      </AnalyticsProvider>
-    </AuthProvider>
-  </ThemeProvider>
-);
+}: DesignSystemProviderProperties) => {
+  // Only import AuthProvider if Clerk environment variables are available
+  let AuthProvider: any = null;
+  
+  try {
+    // Check if Clerk environment variables are available
+    if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      const authModule = require('@repo/auth/provider');
+      AuthProvider = authModule.AuthProvider;
+    }
+  } catch (_error) {
+    // AuthProvider not available, continue without it
+  }
+
+  const content = (
+    <AnalyticsProvider>
+      <TooltipProvider>{children}</TooltipProvider>
+      <Toaster />
+    </AnalyticsProvider>
+  );
+
+  return (
+    <ThemeProvider {...properties}>
+      {AuthProvider ? (
+        <AuthProvider privacyUrl={privacyUrl} termsUrl={termsUrl} helpUrl={helpUrl}>
+          {content}
+        </AuthProvider>
+      ) : (
+        content
+      )}
+    </ThemeProvider>
+  );
+};

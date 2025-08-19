@@ -1,8 +1,7 @@
 'use server';
 
 import { env } from '@/env';
-import { resend } from '@repo/email';
-import { ContactTemplate } from '@repo/email/templates/contact';
+// Email functionality removed - using console log instead
 import { parseError } from '@repo/observability/error';
 import { createRateLimiter, slidingWindow } from '@repo/rate-limit';
 import { headers } from 'next/headers';
@@ -31,13 +30,8 @@ export const contact = async (
       }
     }
 
-    await resend.emails.send({
-      from: env.RESEND_FROM,
-      to: env.RESEND_FROM,
-      subject: 'Contact form submission',
-      replyTo: email,
-      react: <ContactTemplate name={name} email={email} message={message} />,
-    });
+    // Email functionality removed - logging to console instead
+    console.log('Contact form submission:', { name, email, message });
 
     return {};
   } catch (error) {
